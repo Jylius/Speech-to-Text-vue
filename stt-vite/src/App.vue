@@ -6,7 +6,6 @@ const isRecording =ref(false)
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (!Recognition) {
   alert("Tarayıcınız konuşma tanımayı desteklemiyor.");
-  // Alternatif bir yol ekleyebilir veya uyarı verebilirsiniz
 }
 
 const sr = new Recognition()
@@ -25,7 +24,6 @@ onMounted(()=>{
     isRecording.value = false
   }
   sr.onresult = (evt) => {
-    // console.log(evt);
     const t =Array.from(evt.results)
     .map(result => result[0])
     .map(result => result.transcript)
