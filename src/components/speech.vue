@@ -3,111 +3,103 @@
       <transition name="fade">
         <i
           class="fa fa-microphone fa-3x"
-          :class="{ isListening }"
+          :class="{ isListening: isListening }"
           @click="listen"
-        ></i>
+        >
+        </i>
       </transition>
       <transition name="slide">
-        <p v-if="speechToText !== null" class="speechToText">
+        <p v-if="speechToText" class="speechToText">
           {{ speechToText }}
         </p>
+
       </transition>
     </div>
   </template>
   
   <script>
   export default {
-    props: {
-      addNote: {
-        type: Function,
-        required: true
+    props:{
+      addNote : {
+        type : Function,
+        required : true
       },
-      deleteNote: {
-        type: Function,
-        required: true
+      deleteNote : {
+        type : Function,
+        required : true
       },
-      removeAllNotes: {
-        type: Function,
-        required: true
+      removeAllNotes : {
+        type : Function,
+        required : true
       }
     },
     data() {
       return {
         speechToText: null,
         isListening: false,
-        recognition: null
+        recognition:null
       };
+
     },
     methods: {
       listen() {
-        this.isListening = true;
-        this.recognition.start();
-      },
-      record(event) {
-        this.isListening = false;
-        this.speechToText = event.results[0][0].transcript;
-  
-        const parseRegex = /(?<id>(\d*))\s(?=nolu).*(?<command>(sil))$/giu;
-        const voiceMatch = parseRegex.exec(this.speechToText);
-  
-        const allNoteRemoveRegex = /tüm notları sil/giu;
-        const allNotesRemoveMatch = allNoteRemoveRegex.test(this.speechToText);
-  
-        setTimeout(() => {
-          if (voiceMatch && voiceMatch.groups.id && voiceMatch.groups.command) {
-            this.deleteNote(voiceMatch.groups.id);
-          } else if (allNotesRemoveMatch) {
-            this.removeAllNotes();
-          } else {
-            this.addNote(event.results[0][0].transcript);
-          }
-          this.speechToText = null;
-        }, 1000);
-      }
+  if (!this.isListening) {
+    this.isListening = true;
+    this.recognition.start();
+  } else {
+    this.isListening = false;
+    this.recognition.stop();
+  }
+},
+      record(event){
+  this.speechToText = event.results[0][0].transcript;
+
+  const parseRegex = /(?<id>(\d+))\s*(?=nolu).*(?<command>sil)$/giu;
+  const voiceMatch = parseRegex.exec(this.speechToText);
+
+  const allNotesRemoveRegex = /tüm notları sil/giu;
+  const allNotesRemoveMatch = allNotesRemoveRegex.test(this.speechToText);
+
+  console.log(voiceMatch);
+  console.log(allNotesRemoveMatch);
+
+  setTimeout(() => {
+    if (voiceMatch && voiceMatch.groups?.id && voiceMatch.groups?.command) {
+      this.deleteNote(Number(voiceMatch.groups.id));
+    } else if (allNotesRemoveMatch) {
+      this.removeAllNotes();
+    } else {
+      this.addNote(this.speechToText);
+    }
+
+    this.speechToText = null;
+  }, 1000);
+}
+
     },
     mounted() {
-      this.recognition = new webkitSpeechRecognition();
-      this.recognition.lang = "tr";
-      this.recognition.onresult = this.record;
-    }
-  };
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  this.recognition = new SpeechRecognition();
+  this.recognition.lang = "tr-TR";
+  this.recognition.onresult = this.record;
+}
+
+
+   };
   </script>
   
   <style scoped>
-  i {
-    cursor: pointer;
-  }
-  
-  .speechToText {
-    margin-top: 10px;
-  }
-  
-  .isListening {
-    color: #c00201;
-    transition: all 0.5s;
-  }
-  
-  /* Animasyonlar */
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: opacity 0.5s;
-  }
-  .fade-enter, 
-  .fade-leave-to {
-    opacity: 0;
-  }
-  
-  .slide-enter-active, 
-  .slide-leave-active {
-    transition: all 0.5s ease;
-  }
-  .slide-enter {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-  .slide-leave-to {
-    transform: translateY(10px);
-    opacity: 0;
-  }
+i{
+  cursor: pointer;
+}
+.speechToText{
+  margin-top: 10px;
+}
+.isListening{
+  color: red;
+  transition: all 0.5s;
+}
+
+
   </style>
   
